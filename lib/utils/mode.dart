@@ -254,13 +254,22 @@ class MoreIconButton extends StatelessWidget {
 class Song {
   final String title;
   final String subtitle;
-  final String imagePath;
   final IconData icon;
+  final String imagePath;
 
-  const Song({
+  Song({
     required this.title,
     required this.subtitle,
-    required this.imagePath,
     required this.icon,
+    required this.imagePath,
   });
+
+  factory Song.fromMap(Map<String, dynamic> map) {
+    return Song(
+      title: map['title'] ?? '未知标题',
+      subtitle: map['artist'] ?? '未知艺术家',
+      icon: Icons.music_note, // 简单默认图标
+      imagePath: map['imagePath'] ?? '',
+    );
+  }
 }

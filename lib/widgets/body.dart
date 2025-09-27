@@ -35,9 +35,10 @@ class _BodyWidgetState extends State<BodyWidget> {
     return Container(
       color: bgColor,
       height: double.infinity,
-      padding: EdgeInsets.only(bottom: 85),
+      padding: const EdgeInsets.only(bottom: 85),
       child: CustomScrollView(
         slivers: [
+          // 这里用SliverAppBar或你自己的SliverAB
           SliverAB(
             title: '音乐',
             actionsWidget: IconRowButton(
@@ -50,53 +51,42 @@ class _BodyWidgetState extends State<BodyWidget> {
               size: 24.0,
             ),
           ),
-          SettingSliverList(
-            isDivider: false,
-            sliverListLength: widget.songs.length,
-            itemBuilder: (context, index) {
-              final Song song = widget.songs[index];
-              return Container(
-                color: bgColor,
-                child: TouchListButton(
+          SliverList(
+            delegate: SliverChildBuilderDelegate((
+              context,
+              index,
+            ) {
+              final song = widget.songs[index];
+              return ListTile(
+                leading: Icon(
+                  Icons.music_note,
                   color: color,
-                  onPressed: () {
-                    widget.onBackPressed(
-                      song.title,
-                      song.subtitle,
-                      song.icon,
-                      true,
-                      song.imagePath,
-                      index,
-                    );
-                    setState(() {});
-                  },
-                  icon: Icon(
-                    AliIcon.iconDefault,
-                    color: color,
-                    size: iconSize,
-                  ),
-                  title: song.title,
-                  subtitle: song.subtitle,
-                  isSelected: widget.selectedIndex == index,
-                  songImage: song.imagePath,
-                  rowListIconButtons: [
-                    widget.selectedIndex == index
-                        ? Icon(
-                          AliIcon.iconPlaying,
-                          color: color,
-                          size: iconSize,
-                        )
-                        : SizedBox(),
-                    MoreIconButton(
-                      color: color,
-                      iconSize: iconSize,
-                      iconData: AliIcon.iconMore,
-                      onPressed: () {},
-                    ),
-                  ],
+                  size: iconSize,
                 ),
+                title: Text(
+                  song.title,
+                  style: TextStyle(color: color),
+                ),
+                subtitle: Text(
+                  song.subtitle,
+                  style: TextStyle(
+                    color: color.withOpacity(0.7),
+                  ),
+                ),
+                selected: widget.selectedIndex == index,
+                onTap: () {
+                  widget.onBackPressed(
+                    song.title,
+                    song.subtitle,
+                    song.icon,
+                    true,
+                    song.imagePath,
+                    index,
+                  );
+                  setState(() {});
+                },
               );
-            },
+            }, childCount: widget.songs.length),
           ),
         ],
       ),
