@@ -59,14 +59,13 @@ class _MusicLocalDataState extends State<MusicLocalData> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Get.back();
                   openAppSettings(); // 打开系统设置页面
                 },
                 child: const Text("去设置"),
               ),
               TextButton(
-                onPressed:
-                    () => Navigator.of(context).pop(),
+                onPressed: () => Get.back(),
                 child: const Text("取消"),
               ),
             ],
@@ -90,9 +89,7 @@ class _MusicLocalDataState extends State<MusicLocalData> {
         title: Text('本地音乐', style: TextStyle(color: color)),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: color),
-          onPressed:
-              () =>
-                  Navigator.of(context).pop(), // 返回空数据取消加载
+          onPressed: () => Get.back(), // 返回空数据取消加载
         ),
         backgroundColor: bgColor,
         elevation: 0,
@@ -138,9 +135,9 @@ class _MusicLocalDataState extends State<MusicLocalData> {
           onPressed:
               _musicList.isNotEmpty
                   ? () {
-                    Navigator.of(
-                      context,
-                    ).pop(_musicList); // 返回音乐数据给上一页
+                    Get.back(
+                      result: _musicList,
+                    ); // 返回音乐数据给上一页
                   }
                   : null,
           child: Text('确认导入 ${_musicList.length} 首音乐'),
