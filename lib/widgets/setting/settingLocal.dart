@@ -30,8 +30,6 @@ class _MusicLocalDataState extends State<MusicLocalData> {
       setState(() {
         _isLoading = false;
       });
-      print("加载本地音乐失败: $e");
-      // 可以考虑给用户提示权限或者失败原因
     }
   }
 
@@ -65,9 +63,14 @@ class _MusicLocalDataState extends State<MusicLocalData> {
                       sliverListLength: _musicList.length,
                       itemBuilder: (context, index) {
                         final song = _musicList[index];
-                        return ListTile(
-                          title: Text(song['title']),
-                          subtitle: Text(song['artist']),
+                        return NotImageListTile(
+                          title: song['title'],
+                          subtitle: song['artist'],
+                          icon: AliIcon.iconLocal,
+                          bgcolor: bgColor,
+                          titleColor: color,
+                          subtitleColor: color,
+                          onPressed: () {},
                         );
                       },
                     ),
@@ -77,6 +80,15 @@ class _MusicLocalDataState extends State<MusicLocalData> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
         child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: bgColor,
+            splashFactory: NoSplash.splashFactory,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero, // 去掉圆角
+              side: BorderSide.none, // 去掉边框
+            ),
+          ),
           onPressed: () {
             // 返回导入的音乐列表给上一页
             Get.back(result: _musicList);

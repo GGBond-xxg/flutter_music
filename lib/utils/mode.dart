@@ -38,10 +38,11 @@ class TouchListButton extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isSelected;
-  final String songImage;
+  final Uint8List? songImageBytes; // 改成 Uint8List? 类型
   final bool isShowSplash;
   final EdgeInsets padding;
   final List<Widget> rowListIconButtons;
+
   const TouchListButton({
     super.key,
     required this.onPressed,
@@ -50,7 +51,7 @@ class TouchListButton extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.isSelected = false,
-    required this.songImage,
+    this.songImageBytes,
     this.isShowSplash = false,
     required this.rowListIconButtons,
     this.padding = const EdgeInsets.all(8.0),
@@ -68,7 +69,7 @@ class TouchListButton extends StatelessWidget {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         splashFactory: isShowSplash ? noShow : showSF,
-        backgroundColor: transparent,
+        backgroundColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
         ),
@@ -85,21 +86,24 @@ class TouchListButton extends StatelessWidget {
           leading: Container(
             decoration: BoxDecoration(
               color: color.withAlpha(100),
-              // border: Border.all(color: color, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(3.0),
             ),
             width: fangSize,
             height: fangSize,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                songImage,
-                width: fangSize,
-                height: fangSize,
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (context, error, stackTrace) => icon,
-              ),
+              borderRadius: BorderRadius.circular(3.0),
+              child:
+                  songImageBytes != null
+                      ? Image.memory(
+                        songImageBytes!,
+                        width: fangSize,
+                        height: fangSize,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                icon,
+                      )
+                      : Icon(AliIcon.iconDefault),
             ),
           ),
           title: Text(
@@ -251,25 +255,41 @@ class MoreIconButton extends StatelessWidget {
   }
 }
 
+// class Song {
+//   final String title;
+//   final String subtitle;
+//   final IconData icon;
+//   final Uint8List? imageBytes; // ✅ 支持二进制封面图
+
+//   Song({
+//     required this.title,
+//     required this.subtitle,
+//     required this.icon,
+//     this.imageBytes,
+//   });
+
+//   factory Song.fromMap(Map<String, dynamic> map) {
+//     return Song(
+//       title: map['title'] ?? '未知标题',
+//       subtitle: map['artist'] ?? '未知艺术家',
+//       icon: Icons.music_note,
+//       imageBytes: map['imageBytes'], // 👈 确保你传入这个
+//     );
+//   }
+// }
+
 class Song {
   final String title;
   final String subtitle;
   final IconData icon;
-  final String imagePath;
+  final Uint8List? imageBytes;
+  final int duration; // 单位秒
 
   Song({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.imagePath,
+    this.imageBytes,
+    this.duration = 0,
   });
-
-  factory Song.fromMap(Map<String, dynamic> map) {
-    return Song(
-      title: map['title'] ?? '未知标题',
-      subtitle: map['artist'] ?? '未知艺术家',
-      icon: Icons.music_note, // 简单默认图标
-      imagePath: map['imagePath'] ?? '',
-    );
-  }
 }

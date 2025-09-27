@@ -113,8 +113,12 @@ class MusicLoader {
     for (var file in files) {
       try {
         // audio_metadata_reader 读取是同步的，传 File 对象
-        final meta = readMetadata(file, getImage: false);
-
+        final meta = readMetadata(file, getImage: true);
+        Uint8List? coverBytes;
+        if (meta.pictures.isNotEmpty) {
+          coverBytes = meta.pictures.first.bytes;
+        }
+        print(meta.duration);
         result.add({
           'title': meta.title ?? file.uri.pathSegments.last,
           'artist': meta.artist ?? '',
@@ -123,10 +127,10 @@ class MusicLoader {
           'duration': meta.duration ?? 0,
           'path': file.path,
           // 你可以扩展支持封面、genre等
+          'picture': coverBytes,
+          // Uint8List? 封面图字节流
         });
-      } catch (e, stack) {
-        print('读取音乐文件 ${file.path} 元数据失败: $e');
-        print(stack);
+      } catch (e) {
         result.add({
           'title': file.uri.pathSegments.last,
           'artist': '',

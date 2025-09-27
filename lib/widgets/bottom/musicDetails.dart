@@ -4,7 +4,9 @@ class MusicDetails extends StatelessWidget {
   final bool isPlay;
   final String title;
   final String subTitle;
-  final String albumCover;
+  final String currentTime;
+  final String totalDuration;
+  final Uint8List? imageBytes;
   final VoidCallback onNextSongs;
   final VoidCallback onTogglePlay;
   final VoidCallback onPreviousSongs;
@@ -13,9 +15,11 @@ class MusicDetails extends StatelessWidget {
     required this.title,
     required this.isPlay,
     required this.subTitle,
-    required this.albumCover,
+    required this.imageBytes, // ✅ 改这里
     required this.onNextSongs,
+    required this.currentTime,
     required this.onTogglePlay,
+    required this.totalDuration,
     required this.onPreviousSongs,
   });
 
@@ -68,7 +72,7 @@ class MusicDetails extends StatelessWidget {
                   height: size,
                   width: size,
                   decoration: BoxDecoration(
-                    color: color,
+                    color: color.withAlpha(100),
                     borderRadius: BorderRadius.circular(
                       10.0,
                     ),
@@ -77,13 +81,17 @@ class MusicDetails extends StatelessWidget {
                     borderRadius: BorderRadius.circular(
                       8.0,
                     ),
-                    child: Image.asset(
-                      albumCover,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              SizedBox(),
-                    ),
+                    child:
+                        imageBytes != null
+                            ? Image.memory(
+                              imageBytes!,
+                              fit: BoxFit.cover,
+                            )
+                            : Icon(
+                              AliIcon.iconDefault,
+                              color: color,
+                              size: 80,
+                            ),
                   ),
                 ),
                 Container(
@@ -121,12 +129,12 @@ class MusicDetails extends StatelessWidget {
                           MainAxisAlignment.spaceBetween,
                       children: [
                         TextstyleLyrics(
-                          text: '00:10',
+                          text: currentTime,
                           color: color,
                           fontWeight: FontWeight.normal,
                         ),
                         TextstyleLyrics(
-                          text: '04:03',
+                          text: totalDuration,
                           color: color,
                           fontWeight: FontWeight.normal,
                         ),

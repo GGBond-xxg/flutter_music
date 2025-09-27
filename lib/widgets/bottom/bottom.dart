@@ -6,7 +6,7 @@ class BottomShow extends StatelessWidget {
   final String title;
   final IconData icon;
   final String subTitle;
-  final String songImage;
+  final Uint8List? imageBytes; // ✅ 改这里
   final VoidCallback nextSong;
   final VoidCallback onTogglePlay;
   final PanelController panelController;
@@ -19,7 +19,7 @@ class BottomShow extends StatelessWidget {
     required this.isPlay,
     required this.subTitle,
     required this.nextSong,
-    required this.songImage,
+    required this.imageBytes, // ✅ 改这里
     required this.onTogglePlay,
     required this.panelController,
   });
@@ -33,7 +33,7 @@ class BottomShow extends StatelessWidget {
         color: bgColor,
         border: Border(
           top: BorderSide(
-            color: color.withAlpha(100),
+            color: color.withAlpha(0),
             width: 0.5,
           ),
         ),
@@ -53,7 +53,7 @@ class BottomShow extends StatelessWidget {
         ),
         title: title,
         subtitle: subTitle,
-        songImage: songImage,
+        songImageBytes: imageBytes,
         rowListIconButtons: [
           MoreIconButton(
             color: color,

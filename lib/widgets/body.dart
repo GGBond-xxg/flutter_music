@@ -8,7 +8,7 @@ class BodyWidget extends StatefulWidget {
     String subtitle,
     IconData icon,
     bool isPlaying,
-    String songImage,
+    Uint8List? imageBytes, // 改这里
     int selectedIndex,
   )
   onBackPressed;
@@ -65,7 +65,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                       song.subtitle,
                       song.icon,
                       true,
-                      song.imagePath,
+                      song.imageBytes,
                       index,
                     );
                   },
@@ -77,7 +77,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                   title: song.title,
                   subtitle: song.subtitle,
                   isSelected: widget.selectedIndex == index,
-                  songImage: song.imagePath,
+                  songImageBytes: song.imageBytes, // ✅ 改这里
                   rowListIconButtons: [
                     widget.selectedIndex == index
                         ? Icon(

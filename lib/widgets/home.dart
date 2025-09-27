@@ -10,6 +10,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PanelController panelController = PanelController();
+  Duration currentPosition = Duration.zero; // 当前播放时间，动态更新
 
   List<Song> songs = []; // 初始空列表
 
@@ -22,6 +23,17 @@ class _HomePageState extends State<HomePage> {
           : null;
 
   final ThemeController themeController = Get.find();
+
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(
+      duration.inMinutes.remainder(60),
+    );
+    final seconds = twoDigits(
+      duration.inSeconds.remainder(60),
+    );
+    return '$minutes:$seconds';
+  }
 
   void _changeSunMode() {
     themeController.setTheme(ThemeMode.light);
@@ -48,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     String subTitle,
     IconData icon,
     bool isPlaying,
-    String songImage,
+    Uint8List? imageBytes, // ✅ 改这里
     int index,
   ) {
     selectedIndex = index;
@@ -87,13 +99,28 @@ class _HomePageState extends State<HomePage> {
     if (result != null && result.isNotEmpty) {
       final newSongs =
           result.map<Song>((map) {
+            Uint8List? imageBytes;
+
+            if (map['picture'] is Uint8List) {
+              imageBytes = map['picture'];
+            } else if (map['picture'] is List &&
+                map['picture'].isNotEmpty) {
+              if (map['picture'][0] is Uint8List) {
+                imageBytes = map['picture'][0];
+              }
+            }
+
             return Song(
               title: map['title'] ?? '未知标题',
               subtitle: map['artist'] ?? '未知艺术家',
-              imagePath:
-                  map['imagePath'] ??
-                  'assets/images/imageDefault.png',
               icon: AliIcon.iconDefault,
+              imageBytes: imageBytes,
+              duration:
+                  map['duration'] is Duration
+                      ? (map['duration'] as Duration)
+                          .inSeconds
+                      : (map['duration'] as int?) ?? 0,
+              // 取duration
             );
           }).toList();
 
@@ -119,9 +146,15 @@ class _HomePageState extends State<HomePage> {
               onNextSongs: _onNextSong,
               onTogglePlay: _togglePlayState,
               onPreviousSongs: _onPreviousSong,
+              imageBytes: selectedSong?.imageBytes,
               title: selectedSong?.title ?? '无音乐',
-              albumCover: selectedSong?.imagePath ?? '',
               subTitle: selectedSong?.subtitle ?? '暂无播放',
+              currentTime: formatDuration(currentPosition),
+              totalDuration: formatDuration(
+                Duration(
+                  seconds: selectedSong?.duration ?? 0,
+                ),
+              ),
             ),
         collapsed: BottomShow(
           index: selectedIndex,
@@ -130,7 +163,7 @@ class _HomePageState extends State<HomePage> {
           onTogglePlay: _togglePlayState,
           panelController: panelController,
           title: selectedSong?.title ?? '无音乐',
-          songImage: selectedSong?.imagePath ?? '',
+          imageBytes: selectedSong?.imageBytes,
           subTitle: selectedSong?.subtitle ?? '暂无播放',
           icon: selectedSong?.icon ?? AliIcon.iconDefault,
         ),
