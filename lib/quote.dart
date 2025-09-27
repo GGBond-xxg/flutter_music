@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:sliding_up_panel2/sliding_up_panel2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
+
 part 'utils/mode.dart';
 part 'widgets/body.dart';
 part 'widgets/home.dart';

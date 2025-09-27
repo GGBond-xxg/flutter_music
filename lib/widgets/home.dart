@@ -102,12 +102,6 @@ class _HomePageState extends State<HomePage> {
         selectedIndex = 0;
         selectedIsPlay = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('加载了 ${newSongs.length} 首本地音乐'),
-        ),
-      );
     }
   }
 

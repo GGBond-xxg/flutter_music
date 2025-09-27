@@ -14,10 +14,6 @@ class _MusicDataState extends State<MusicData> {
     Color bgColor = bodyBackgroundColor(context);
     Color color = selectAndTextColor(context);
 
-    final List<Widget> musicDataPages = [
-      const MusicLocalData(),
-    ];
-
     return Container(
       color: bgColor,
       height: double.infinity,

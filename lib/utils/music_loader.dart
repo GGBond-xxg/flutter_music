@@ -59,15 +59,12 @@ class MusicLoader {
       if (await dir.exists()) {
         return dir;
       }
-      // fallback 到外部存储目录
       Directory? ext = await getExternalStorageDirectory();
       if (ext != null) return ext;
-      // 如果以上都不可用，使用应用沙箱目录作为 fallback
       return await getApplicationDocumentsDirectory();
     } else if (Platform.isWindows ||
         Platform.isLinux ||
         Platform.isMacOS) {
-      // 桌面平台你可能希望让用户选择目录，我这里只是给一个临时目录
       return await getApplicationDocumentsDirectory();
     } else {
       throw UnsupportedError(
@@ -115,19 +112,21 @@ class MusicLoader {
     List<Map<String, dynamic>> result = [];
     for (var file in files) {
       try {
-        final meta = await MetadataGod.readMetadata(
-          file: file.path,
-        );
+        // audio_metadata_reader 读取是同步的，传 File 对象
+        final meta = readMetadata(file, getImage: false);
+
         result.add({
           'title': meta.title ?? file.uri.pathSegments.last,
           'artist': meta.artist ?? '',
           'album': meta.album ?? '',
-          'duration': meta.duration?.inSeconds ?? 0,
+          // duration 单位是秒，可能是 null
+          'duration': meta.duration ?? 0,
           'path': file.path,
-          // metadata_god 有可能还提供封面图数据，你可以扩展
+          // 你可以扩展支持封面、genre等
         });
-      } catch (e) {
-        // 读取失败，生成一个最简单的条目
+      } catch (e, stack) {
+        print('读取音乐文件 ${file.path} 元数据失败: $e');
+        print(stack);
         result.add({
           'title': file.uri.pathSegments.last,
           'artist': '',
