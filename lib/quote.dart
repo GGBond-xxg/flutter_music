@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:sliding_up_panel2/sliding_up_panel2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
