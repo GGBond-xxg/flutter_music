@@ -1,7 +1,8 @@
 part of '../../quote.dart';
 
 class MusicData extends StatefulWidget {
-  const MusicData({super.key});
+  final Future<void> Function()? onImportMusic;
+  const MusicData({super.key, this.onImportMusic});
 
   @override
   State<MusicData> createState() => _MusicDataState();
@@ -45,17 +46,7 @@ class _MusicDataState extends State<MusicData> {
                 subtitle: subtitle,
                 subtitleColor: color,
                 onPressed: () async {
-                  final result = await Get.to<
-                    List<Map<String, dynamic>>
-                  >(
-                    musicDataPages[index],
-                    transition: Transition.cupertino,
-                    duration: Duration(milliseconds: 300),
-                  );
-                  if (result != null && result.isNotEmpty) {
-                    Get.back(result: result);
-                    // 返回音乐列表给首页
-                  }
+                  await widget.onImportMusic?.call();
                 },
               );
             },

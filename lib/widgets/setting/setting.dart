@@ -5,8 +5,10 @@ class SettingPage extends StatefulWidget {
   final void Function() onTapMoon;
   final ThemeMode currentThemeMode;
   final void Function() onTapSystem;
+  final Future<void> Function()? onImportMusic;
   const SettingPage({
     super.key,
+    this.onImportMusic,
     required this.onTapSun,
     required this.onTapMoon,
     required this.onTapSystem,
@@ -22,7 +24,7 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     final currentThemeMode = widget.currentThemeMode;
     final List<Widget> settingOptionsList = [
-      MusicData(),
+      MusicData(onImportMusic: widget.onImportMusic),
       ChangMode(
         onTapSun: widget.onTapSun,
         onTapMoon: widget.onTapMoon,

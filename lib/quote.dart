@@ -11,7 +11,6 @@ part 'utils/mode.dart';
 part 'widgets/body.dart';
 part 'widgets/home.dart';
 part 'utils/parameter.dart';
-part 'utils/musicPage.dart';
 part 'utils/music_loader.dart';
 part 'widgets/bottom/bottom.dart';
 part 'widgets/themeController.dart';

@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   // 打开MusicData页面，返回歌曲列表后更新songs
   Future<void> _openMusicDataPage() async {
     final result = await Get.to<List<Map<String, dynamic>>>(
-      () => const MusicData(),
+      () => const MusicLocalData(),
       transition: Transition.cupertino,
       duration: Duration(milliseconds: 300),
     );
@@ -141,15 +141,16 @@ class _HomePageState extends State<HomePage> {
           icon: selectedSong?.icon ?? AliIcon.iconDefault,
         ),
         body: BodyWidget(
+          songs: songs,
           onBackPressed: _onSelectSong,
           selectedIndex: selectedIndex,
-          songs: songs,
         ),
       ),
       endDrawer: SettingPage(
         onTapSun: _changeSunMode,
-        onTapMoon: _changeNightMode,
         onTapSystem: _toggleTheme,
+        onTapMoon: _changeNightMode,
+        onImportMusic: _openMusicDataPage,
         currentThemeMode: themeController.themeMode.value,
       ),
     );
