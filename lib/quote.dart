@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:sliding_up_panel2/sliding_up_panel2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 part 'mode/mode.dart';
 part 'widgets/body.dart';
 part 'widgets/home.dart';
 part 'mode/parameter.dart';
+part 'mode/permission_utils.dart';
 part 'widgets/bottom/bottom.dart';
 part 'widgets/themeController.dart';
 part 'widgets/setting/setting.dart';

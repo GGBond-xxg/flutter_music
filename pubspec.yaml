@@ -12,10 +12,16 @@ dependencies:
   # swipeable_page_route: ^0.4.7
   # modal_bottom_sheet: ^3.0.0
   get: ^4.6.6
+  file_picker: ^6.1.1
+  just_audio: ^0.9.36
+  path_provider: ^2.1.2
   dynamic_color: ^1.8.1
   cupertino_icons: ^1.0.8
+  device_info_plus: ^9.1.0
   shared_preferences: ^2.2.2
   sliding_up_panel2: ^3.3.0+1
+  permission_handler: ^11.3.1
+  flutter_media_metadata: ^1.0.0
 
 dev_dependencies:
   flutter_test:
