@@ -10,31 +10,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PanelController panelController = PanelController();
-  final List<Song> songs = List.generate(
-    20,
-    (i) => Song(
-      title: 'Title $i',
-      subtitle: 'Subtitle $i',
-      imagePath: 'assets/images/imageDefault.png',
-      icon: AliIcon.iconDefault,
-    ),
-  );
+
+  List<Song> songs = []; // 初始空列表
 
   bool selectedIsPlay = false;
   int selectedIndex = -1;
+
   Song? get selectedSong =>
       (selectedIndex >= 0 && selectedIndex < songs.length)
           ? songs[selectedIndex]
           : null;
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {});
-    });
-    super.initState();
-  }
 
   final ThemeController themeController = Get.find();
+
   void _changeSunMode() {
     themeController.setTheme(ThemeMode.light);
   }
@@ -88,13 +76,46 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
+  // 打开MusicData页面，返回歌曲列表后更新songs
+  Future<void> _openMusicDataPage() async {
+    final result = await Get.to<List<Map<String, dynamic>>>(
+      () => const MusicData(),
+      transition: Transition.cupertino,
+      duration: Duration(milliseconds: 300),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      final newSongs =
+          result.map<Song>((map) {
+            return Song(
+              title: map['title'] ?? '未知标题',
+              subtitle: map['artist'] ?? '未知艺术家',
+              imagePath:
+                  map['imagePath'] ??
+                  'assets/images/imageDefault.png',
+              icon: AliIcon.iconDefault,
+            );
+          }).toList();
+
+      setState(() {
+        songs = newSongs;
+        selectedIndex = 0;
+        selectedIsPlay = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('加载了 ${newSongs.length} 首本地音乐'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bodyBackgroundColor(context),
       body: SlidingUpPanel(
-        // parallaxEnabled: true,
-        // parallaxOffset: 0.2,
         minHeight: 85,
         controller: panelController,
         maxHeight: MediaQuery.of(context).size.height,

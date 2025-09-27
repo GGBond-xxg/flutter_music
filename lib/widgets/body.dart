@@ -12,6 +12,7 @@ class BodyWidget extends StatefulWidget {
     int selectedIndex,
   )
   onBackPressed;
+
   const BodyWidget({
     super.key,
     required this.onBackPressed,
@@ -25,10 +26,12 @@ class BodyWidget extends StatefulWidget {
 
 class _BodyWidgetState extends State<BodyWidget> {
   double iconSize = 20.0;
+
   @override
   Widget build(BuildContext context) {
     Color bgColor = bodyBackgroundColor(context);
     Color color = selectAndTextColor(context);
+
     return Container(
       color: bgColor,
       height: double.infinity,
@@ -41,14 +44,15 @@ class _BodyWidgetState extends State<BodyWidget> {
               icon: Icon(AliIcon.iconSetting, color: color),
               onPressed: () {
                 Scaffold.of(context).openEndDrawer();
-                // 保留打开 endDrawer 的动作
               },
               paddingRight: 16,
               color: color,
               size: 24.0,
             ),
           ),
-          SliverList.separated(
+          SettingSliverList(
+            isDivider: false,
+            sliverListLength: widget.songs.length,
             itemBuilder: (context, index) {
               final Song song = widget.songs[index];
               return Container(
@@ -73,7 +77,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                   ),
                   title: song.title,
                   subtitle: song.subtitle,
-                  isSelected: true,
+                  isSelected: widget.selectedIndex == index,
                   songImage: song.imagePath,
                   rowListIconButtons: [
                     widget.selectedIndex == index
@@ -93,10 +97,6 @@ class _BodyWidgetState extends State<BodyWidget> {
                 ),
               );
             },
-            separatorBuilder: (context, index) {
-              return SizedBox();
-            },
-            itemCount: widget.songs.length,
           ),
         ],
       ),
