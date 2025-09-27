@@ -1,0 +1,18 @@
+import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:sliding_up_panel2/sliding_up_panel2.dart';
+part 'mode/mode.dart';
+part 'widgets/body.dart';
+part 'widgets/home.dart';
+part 'mode/parameter.dart';
+part 'widgets/bottom/bottom.dart';
+part 'widgets/themeController.dart';
+part 'widgets/setting/setting.dart';
+part 'widgets/bottom/textStyle.dart';
+part 'widgets/bottom/musicDetails.dart';
+part 'widgets/setting/settingText.dart';
+part 'widgets/setting/settingData.dart';
+part 'widgets/setting/settingMode.dart';
+part 'widgets/setting/settingSliverList.dart';
