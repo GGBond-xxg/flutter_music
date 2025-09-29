@@ -123,7 +123,8 @@ class _MusicDetailsState extends State<MusicDetails> {
                 ),
 
                 /// 歌词滚动显示区域
-                SizedBox(
+                Container(
+                  margin: EdgeInsets.only(top: 5.0),
                   height: 100,
                   child: LyricList(
                     lyrics: widget.lyrics,

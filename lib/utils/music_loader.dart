@@ -147,11 +147,15 @@ class MusicLoader {
       try {
         // audio_metadata_reader 读取是同步的，传 File 对象
         final meta = readMetadata(file, getImage: true);
+        final duration = meta.duration;
+        final durationSeconds = duration?.inSeconds ?? 0;
         Uint8List? coverBytes;
         if (meta.pictures.isNotEmpty) {
           coverBytes = meta.pictures.first.bytes;
         }
-
+        if (durationSeconds < 10) {
+          continue;
+        }
         result.add({
           'title': meta.title ?? file.uri.pathSegments.last,
           'artist': meta.artist ?? '',

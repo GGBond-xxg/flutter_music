@@ -9,10 +9,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final PanelController panelController = PanelController();
+  static bool _hasLoadedMusic = false; // 👈 只在第一次加载
   Duration currentPosition = Duration.zero; // 当前播放时间，动态更新
-  final AudioPlayer _player =
-      AudioPlayer(); // just_audio 播放器实例
+  final AudioPlayer _player = AudioPlayer(); //播放器实例
+  final PanelController panelController = PanelController();
   final ItemScrollController lyricScrollController =
       ItemScrollController();
   final ItemPositionsListener lyricPositionListener =
@@ -95,9 +95,54 @@ class _HomePageState extends State<HomePage> {
     selectedIsPlay = !selectedIsPlay;
   }
 
+  void _changePlayToTrue() {
+    selectedIsPlay = true;
+  }
+
   void _togglePlayState() async {
     _play();
     _changePlayIcon();
+    setState(() {});
+  }
+
+  void _changeNowPlaySong() async {
+    final nowSong = songs[selectedIndex];
+    await _player.setAudioSource(
+      AudioSource.uri(Uri.file(nowSong.path)),
+    );
+    // 设置歌词
+    _currentLyrics = nowSong.lyrics;
+    await _player.play();
+    _changePlayToTrue(); // 更新播放图标
+    setState(() {}); // 更新 UI
+  }
+
+  void _onNextSong() {
+    if (songs.isEmpty) return;
+    // 切换索引
+    if (selectedIndex >= songs.length - 1) {
+      selectedIndex = 0;
+    } else {
+      selectedIndex += 1;
+    }
+    _changeNowPlaySong();
+    // 播放
+    selectedIsPlay = true;
+    setState(() {});
+  }
+
+  void _onPreviousSong() async {
+    if (songs.isEmpty) return;
+
+    // 更新索引
+    if (selectedIndex <= 0) {
+      selectedIndex = songs.length - 1;
+    } else {
+      selectedIndex -= 1;
+    }
+    _changeNowPlaySong();
+    // 播放
+    selectedIsPlay = true;
     setState(() {});
   }
 
@@ -131,48 +176,6 @@ class _HomePageState extends State<HomePage> {
             _player.play();
           });
     }
-  }
-
-  void _changeNowPlaySong() async {
-    final nowSong = songs[selectedIndex];
-    await _player.setAudioSource(
-      AudioSource.uri(Uri.file(nowSong.path)),
-    );
-    // 设置歌词
-    _currentLyrics = nowSong.lyrics;
-    await _player.play();
-    _changePlayIcon(); // 更新播放图标
-    setState(() {}); // 更新 UI
-  }
-
-  void _onNextSong() {
-    if (songs.isEmpty) return;
-    // 切换索引
-    if (selectedIndex >= songs.length - 1) {
-      selectedIndex = 0;
-    } else {
-      selectedIndex += 1;
-    }
-    _changeNowPlaySong();
-    // 播放
-    selectedIsPlay = true;
-    setState(() {});
-  }
-
-  void _onPreviousSong() async {
-    if (songs.isEmpty) return;
-
-    // 更新索引
-    if (selectedIndex <= 0) {
-      selectedIndex = songs.length - 1;
-    } else {
-      selectedIndex -= 1;
-    }
-    _changeNowPlaySong();
-    // 播放
-    selectedIsPlay = true;
-
-    setState(() {});
   }
 
   // 打开MusicData页面，返回歌曲列表后更新songs
@@ -232,9 +235,57 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadMusicInHome() async {
+    final music =
+        await MusicLoader.loadLocalMusicWithPermission();
+
+    final newSongs =
+        music.map<Song>((map) {
+          Uint8List? imageBytes;
+          if (map['picture'] is Uint8List) {
+            imageBytes = map['picture'];
+          } else if (map['picture'] is List &&
+              map['picture'].isNotEmpty) {
+            if (map['picture'][0] is Uint8List) {
+              imageBytes = map['picture'][0];
+            }
+          }
+
+          return Song(
+            title: map['title'] ?? '未知标题',
+            subtitle: map['artist'] ?? '未知艺术家',
+            icon: AliIcon.iconDefault,
+            imageBytes: imageBytes,
+            duration:
+                map['duration'] is Duration
+                    ? (map['duration'] as Duration)
+                        .inSeconds
+                    : (map['duration'] as int?) ?? 0,
+            path: map['path'] ?? '',
+            lyrics:
+                map['lyrics'] is List<LyricLine>
+                    ? map['lyrics']
+                    : [],
+          );
+        }).toList();
+
+    setState(() {
+      songs = newSongs;
+      selectedIndex = -1;
+      selectedIsPlay = false;
+      _currentLyrics = [];
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+
+    if (Platform.isWindows && !_hasLoadedMusic) {
+      _hasLoadedMusic = true;
+      _loadMusicInHome(); // 👈 自动加载一次
+    }
+    print(_hasLoadedMusic);
     _player.playbackEventStream.listen((event) {
       if (event.processingState ==
           ProcessingState.completed) {
@@ -243,7 +294,6 @@ class _HomePageState extends State<HomePage> {
               ProcessingState.ready ||
           event.processingState ==
               ProcessingState.buffering) {
-        // 更新当前播放时间
         currentPosition = _player.position;
         setState(() {});
       }
