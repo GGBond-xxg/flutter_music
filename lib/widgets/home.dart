@@ -9,7 +9,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static bool _hasLoadedMusic = false; // 👈 只在第一次加载
   Duration currentPosition = Duration.zero; // 当前播放时间，动态更新
   final AudioPlayer _player = AudioPlayer(); //播放器实例
   final PanelController panelController = PanelController();
@@ -155,26 +154,36 @@ class _HomePageState extends State<HomePage> {
     int index,
   ) async {
     selectedIndex = index;
-    selectedIsPlay = isPlaying;
+    // 点歌就认为应该播放
+    selectedIsPlay = true;
     final song = songs[index];
     _currentLyrics = song.lyrics;
-    final audioSource = AudioSource.uri(
-      Uri.file(song.path),
-    );
-    await _player.setAudioSource(audioSource);
-    setState(() {}); // 更新 UI，先显示信息
+    try {
+      Uri uri = Uri.file(song.path);
+      final audioSource = AudioSource.uri(uri);
+      await _player.setAudioSource(audioSource);
+    } catch (e) {
+      return;
+    }
 
-    if (selectedIsPlay) {
-      // ✅ 等待播放器准备好再播放
+    setState(() {}); // 更新 UI（显示当前选中的 song）
+
+    try {
+      // 等待播放器进入 ready 或 buffering 状态
       _player.playbackEventStream
           .firstWhere(
             (event) =>
                 event.processingState ==
-                ProcessingState.ready,
+                    ProcessingState.ready ||
+                event.processingState ==
+                    ProcessingState.buffering,
           )
           .then((_) {
             _player.play();
           });
+    } catch (e) {
+      await _player.play();
+      // fallback：直接尝试播放
     }
   }
 
@@ -280,12 +289,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _loadMusicInHome(); // 👈 自动加载一次
 
-    if (Platform.isWindows && !_hasLoadedMusic) {
-      _hasLoadedMusic = true;
-      _loadMusicInHome(); // 👈 自动加载一次
-    }
-    print(_hasLoadedMusic);
     _player.playbackEventStream.listen((event) {
       if (event.processingState ==
           ProcessingState.completed) {

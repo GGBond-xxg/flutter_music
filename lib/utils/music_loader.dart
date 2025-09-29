@@ -160,13 +160,13 @@ class MusicLoader {
           'title': meta.title ?? file.uri.pathSegments.last,
           'artist': meta.artist ?? '',
           'album': meta.album ?? '',
-          'duration': meta.duration ?? 0,
+          'duration': durationSeconds,
           'path': file.path,
           'picture': coverBytes,
           'lyrics':
               meta.lyrics != null && meta.lyrics!.isNotEmpty
                   ? parseLyrics(meta.lyrics!)
-                  : [], // ✅ 确保是 List<LyricLine>
+                  : [],
         });
       } catch (e) {
         result.add({

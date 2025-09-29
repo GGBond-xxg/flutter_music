@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.6
-  just_audio: ^0.9.36
+  just_audio: ^0.10.5
   file_selector: ^1.0.3
   path_provider: ^2.1.2
   dynamic_color: ^1.8.1
@@ -19,7 +19,9 @@ dependencies:
   shared_preferences: ^2.2.2
   sliding_up_panel2: ^3.3.0+1
   permission_handler: ^11.3.1
+  just_audio_media_kit: ^2.1.0
   audio_metadata_reader: ^1.4.2
+  media_kit_libs_windows_audio: any
   scrollable_positioned_list: ^0.3.8
 
 

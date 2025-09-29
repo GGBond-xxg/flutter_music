@@ -1,3 +1,4 @@
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:music/quote.dart';
@@ -5,6 +6,7 @@ import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  JustAudioMediaKit.ensureInitialized(); // ✅ 重要！
   Get.put(ThemeController());
   runApp(MyApp());
 }
