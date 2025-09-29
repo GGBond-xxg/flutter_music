@@ -11,6 +11,44 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final PanelController panelController = PanelController();
   Duration currentPosition = Duration.zero; // 当前播放时间，动态更新
+  final AudioPlayer _player =
+      AudioPlayer(); // just_audio 播放器实例
+  final ItemScrollController lyricScrollController =
+      ItemScrollController();
+  final ItemPositionsListener lyricPositionListener =
+      ItemPositionsListener.create();
+
+  List<LyricLine> _currentLyrics = []; // 当前歌词
+
+  List<LyricLine> _parseLyrics(String lyrics) {
+    final regex = RegExp(r'\[(\d+):(\d+)\.(\d+)\](.*)');
+    final lines = lyrics.split('\n');
+    List<LyricLine> result = [];
+
+    for (var line in lines) {
+      final match = regex.firstMatch(line);
+      if (match != null) {
+        final minutes = int.parse(match.group(1)!);
+        final seconds = int.parse(match.group(2)!);
+        final milliseconds = int.parse(match.group(3)!);
+        final text = match.group(4)!.trim();
+        if (text.isEmpty) continue;
+        result.add(
+          LyricLine(
+            time: Duration(
+              minutes: minutes,
+              seconds: seconds,
+              milliseconds: milliseconds * 10,
+            ),
+            text: text,
+          ),
+        );
+      }
+    }
+
+    result.sort((a, b) => a.time.compareTo(b.time));
+    return result;
+  }
 
   List<Song> songs = []; // 初始空列表
 
@@ -47,11 +85,19 @@ class _HomePageState extends State<HomePage> {
     themeController.setTheme(ThemeMode.system);
   }
 
-  void _togglePlayState() {
-    if (selectedIndex == -1) {
-      selectedIndex = 0;
-    }
+  void _play() async {
+    _player.playing
+        ? await _player.pause()
+        : await _player.play();
+  }
+
+  void _changePlayIcon() {
     selectedIsPlay = !selectedIsPlay;
+  }
+
+  void _togglePlayState() async {
+    _play();
+    _changePlayIcon();
     setState(() {});
   }
 
@@ -60,38 +106,81 @@ class _HomePageState extends State<HomePage> {
     String subTitle,
     IconData icon,
     bool isPlaying,
-    Uint8List? imageBytes, // ✅ 改这里
+    Uint8List? imageBytes,
     int index,
-  ) {
+  ) async {
     selectedIndex = index;
     selectedIsPlay = isPlaying;
-    setState(() {});
+    final song = songs[index];
+    _currentLyrics = song.lyrics;
+    final audioSource = AudioSource.uri(
+      Uri.file(song.path),
+    );
+    await _player.setAudioSource(audioSource);
+    setState(() {}); // 更新 UI，先显示信息
+
+    if (selectedIsPlay) {
+      // ✅ 等待播放器准备好再播放
+      _player.playbackEventStream
+          .firstWhere(
+            (event) =>
+                event.processingState ==
+                ProcessingState.ready,
+          )
+          .then((_) {
+            _player.play();
+          });
+    }
+  }
+
+  void _changeNowPlaySong() async {
+    final nowSong = songs[selectedIndex];
+    await _player.setAudioSource(
+      AudioSource.uri(Uri.file(nowSong.path)),
+    );
+    // 设置歌词
+    _currentLyrics = nowSong.lyrics;
+    await _player.play();
+    _changePlayIcon(); // 更新播放图标
+    setState(() {}); // 更新 UI
   }
 
   void _onNextSong() {
+    if (songs.isEmpty) return;
+    // 切换索引
     if (selectedIndex >= songs.length - 1) {
       selectedIndex = 0;
     } else {
       selectedIndex += 1;
     }
+    _changeNowPlaySong();
+    // 播放
     selectedIsPlay = true;
     setState(() {});
   }
 
-  void _onPreviousSong() {
+  void _onPreviousSong() async {
+    if (songs.isEmpty) return;
+
+    // 更新索引
     if (selectedIndex <= 0) {
       selectedIndex = songs.length - 1;
     } else {
       selectedIndex -= 1;
     }
+    _changeNowPlaySong();
+    // 播放
     selectedIsPlay = true;
+
     setState(() {});
   }
 
   // 打开MusicData页面，返回歌曲列表后更新songs
+  // 打开导入音乐界面，只在用户点击导入按钮时调用
   Future<void> _openMusicDataPage() async {
+    // ✅ 直接跳转，不预加载
     final result = await Get.to<List<Map<String, dynamic>>>(
-      () => const MusicLocalData(),
+      () => MusicLocalData(),
       transition: Transition.cupertino,
       duration: Duration(milliseconds: 300),
     );
@@ -100,7 +189,6 @@ class _HomePageState extends State<HomePage> {
       final newSongs =
           result.map<Song>((map) {
             Uint8List? imageBytes;
-
             if (map['picture'] is Uint8List) {
               imageBytes = map['picture'];
             } else if (map['picture'] is List &&
@@ -120,16 +208,52 @@ class _HomePageState extends State<HomePage> {
                       ? (map['duration'] as Duration)
                           .inSeconds
                       : (map['duration'] as int?) ?? 0,
-              // 取duration
+              path: map['path'] ?? '',
+              lyrics:
+                  map['lyrics'] is List<LyricLine>
+                      ? map['lyrics']
+                      : [],
             );
           }).toList();
 
       setState(() {
         songs = newSongs;
-        selectedIndex = 0;
+        selectedIndex = -1;
         selectedIsPlay = false;
+
+        // 初始化歌词
+        final rawLyrics = result[0]['lyrics'];
+        if (rawLyrics is String) {
+          _currentLyrics = _parseLyrics(rawLyrics);
+        } else {
+          _currentLyrics = [];
+        }
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _player.playbackEventStream.listen((event) {
+      if (event.processingState ==
+          ProcessingState.completed) {
+        Future.microtask(() => _onNextSong());
+      } else if (event.processingState ==
+              ProcessingState.ready ||
+          event.processingState ==
+              ProcessingState.buffering) {
+        // 更新当前播放时间
+        currentPosition = _player.position;
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
 
   @override
@@ -143,13 +267,17 @@ class _HomePageState extends State<HomePage> {
         panelBuilder:
             () => MusicDetails(
               isPlay: selectedIsPlay,
+              lyrics: _currentLyrics,
               onNextSongs: _onNextSong,
               onTogglePlay: _togglePlayState,
               onPreviousSongs: _onPreviousSong,
               imageBytes: selectedSong?.imageBytes,
               title: selectedSong?.title ?? '无音乐',
+              positionStream: _player.positionStream,
               subTitle: selectedSong?.subtitle ?? '暂无播放',
               currentTime: formatDuration(currentPosition),
+              lyricScrollController: lyricScrollController,
+              lyricPositionListener: lyricPositionListener,
               totalDuration: formatDuration(
                 Duration(
                   seconds: selectedSong?.duration ?? 0,

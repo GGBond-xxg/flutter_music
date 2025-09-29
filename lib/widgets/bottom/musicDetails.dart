@@ -1,27 +1,59 @@
 part of '../../quote.dart';
 
-class MusicDetails extends StatelessWidget {
+class MusicDetails extends StatefulWidget {
   final bool isPlay;
   final String title;
   final String subTitle;
   final String currentTime;
   final String totalDuration;
   final Uint8List? imageBytes;
+  final List<LyricLine> lyrics;
   final VoidCallback onNextSongs;
   final VoidCallback onTogglePlay;
   final VoidCallback onPreviousSongs;
+  final Stream<Duration> positionStream;
+  final ItemScrollController lyricScrollController;
+  final ItemPositionsListener lyricPositionListener;
   const MusicDetails({
     super.key,
     required this.title,
     required this.isPlay,
+    required this.lyrics,
     required this.subTitle,
-    required this.imageBytes, // ✅ 改这里
+    required this.imageBytes,
     required this.onNextSongs,
     required this.currentTime,
     required this.onTogglePlay,
     required this.totalDuration,
+    required this.positionStream,
     required this.onPreviousSongs,
+    required this.lyricScrollController,
+    required this.lyricPositionListener,
   });
+
+  @override
+  State<MusicDetails> createState() => _MusicDetailsState();
+}
+
+class _MusicDetailsState extends State<MusicDetails> {
+  int alignIndex = 0; // 当前对齐方式索引
+
+  final List<TextAlign> alignments = [
+    TextAlign.left,
+    TextAlign.center,
+    TextAlign.right,
+  ];
+
+  final List<IconData> alignIcons = [
+    AliIcon.iconLeft,
+    AliIcon.iconCenter,
+    AliIcon.iconRight,
+  ];
+
+  void changeAlignment() {
+    alignIndex = (alignIndex + 1) % alignments.length;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +63,8 @@ class MusicDetails extends StatelessWidget {
     double iconSize = 50.0;
     double iconMarginSize =
         MediaQuery.of(context).size.width * 0.08;
+    // 歌词对齐相关变量
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -42,25 +76,18 @@ class MusicDetails extends StatelessWidget {
                   MainAxisAlignment.spaceEvenly,
               children: [
                 ListTile(
-                  contentPadding: EdgeInsets.only(
-                    left: 0.0,
-                    right: 0.0,
+                  contentPadding: EdgeInsets.all(0.0),
+                  title: TextstyleLyrics(
+                    color: color,
+                    fontSize: 25.0,
+                    text: widget.title,
+                    fontWeight: FontWeight.bold,
                   ),
-                  title: Text(
-                    title,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 25.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    subTitle,
-                    style: TextStyle(
-                      fontSize: 15.0,
-                      color: color.withAlpha(400),
-                      fontWeight: FontWeight.bold,
-                    ),
+                  subtitle: TextstyleLyrics(
+                    color: color.withAlpha(400),
+                    fontSize: 15.0,
+                    text: widget.subTitle,
+                    fontWeight: FontWeight.bold,
                   ),
                   trailing: MoreIconButton(
                     color: color,
@@ -82,9 +109,9 @@ class MusicDetails extends StatelessWidget {
                       8.0,
                     ),
                     child:
-                        imageBytes != null
+                        widget.imageBytes != null
                             ? Image.memory(
-                              imageBytes!,
+                              widget.imageBytes!,
                               fit: BoxFit.cover,
                             )
                             : Icon(
@@ -94,55 +121,81 @@ class MusicDetails extends StatelessWidget {
                             ),
                   ),
                 ),
-                Container(
-                  width: size,
-                  color: bgColor,
-                  child: Column(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      TextstyleLyrics(
-                        text: '今天我寒夜裏看雪飄過',
-                        color: color.withAlpha(900),
-                      ),
-                      TextstyleLyrics(
-                        text: '懷著冷卻了的心窩漂遠方',
-                        color: color,
-                      ),
-                      TextstyleLyrics(
-                        text: '風雨裏追趕 霧裏分不清影蹤',
-                        color: color.withAlpha(900),
-                      ),
-                    ],
+
+                /// 歌词滚动显示区域
+                SizedBox(
+                  height: 100,
+                  child: LyricList(
+                    lyrics: widget.lyrics,
+                    normalColor: color,
+                    highlightColor: color,
+                    textAlign: alignments[alignIndex],
+                    positionStream: widget.positionStream,
+                    lyricScrollController:
+                        widget.lyricScrollController,
+                    lyricPositionListener:
+                        widget.lyricPositionListener,
                   ),
                 ),
-                Column(
-                  children: [
-                    LinearProgressIndicator(
-                      value: 0.01, // 0.0 到 1.0
-                    ),
-                    SizedBox(height: 10.0),
-                    Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+
+                // 播放进度与控制
+                StreamBuilder<Duration>(
+                  stream: widget.positionStream,
+                  builder: (context, snapshot) {
+                    final position =
+                        snapshot.data ?? Duration.zero;
+
+                    // 解析 totalDuration（String -> Duration）
+                    final total = _parseDuration(
+                      widget.totalDuration,
+                    );
+                    double progress = 0.0;
+
+                    if (total.inMilliseconds > 0) {
+                      progress =
+                          position.inMilliseconds /
+                          total.inMilliseconds;
+                      if (progress > 1.0) progress = 1.0;
+                    }
+
+                    return Column(
                       children: [
-                        TextstyleLyrics(
-                          text: currentTime,
-                          color: color,
-                          fontWeight: FontWeight.normal,
+                        LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: color.withAlpha(
+                            50,
+                          ),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                                color,
+                              ),
                         ),
-                        TextstyleLyrics(
-                          text: totalDuration,
-                          color: color,
-                          fontWeight: FontWeight.normal,
+                        const SizedBox(height: 10.0),
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment
+                                  .spaceBetween,
+                          children: [
+                            TextstyleLyrics(
+                              text: _formatDuration(
+                                position,
+                              ),
+                              color: color,
+                              fontWeight: FontWeight.normal,
+                            ),
+                            TextstyleLyrics(
+                              text: widget.totalDuration,
+                              color: color,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                    SizedBox(height: 10.0),
-                  ],
+                    );
+                  },
                 ),
+
+                // 播放控制按钮
                 Row(
                   mainAxisAlignment:
                       MainAxisAlignment.center,
@@ -151,37 +204,32 @@ class MusicDetails extends StatelessWidget {
                       color: color,
                       iconSize: iconSize,
                       iconData: AliIcon.iconPrevious,
-                      onPressed: () {
-                        onPreviousSongs();
-                      },
+                      onPressed: widget.onPreviousSongs,
                     ),
                     Container(
-                      margin: EdgeInsets.only(
-                        left: iconMarginSize,
-                        right: iconMarginSize,
+                      margin: EdgeInsets.symmetric(
+                        horizontal: iconMarginSize,
                       ),
                       child: MoreIconButton(
                         color: color,
                         iconSize: iconSize,
                         iconData:
-                            isPlay
+                            widget.isPlay
                                 ? AliIcon.iconPaused
                                 : AliIcon.iconPlay,
-                        onPressed: () {
-                          onTogglePlay();
-                        },
+                        onPressed: widget.onTogglePlay,
                       ),
                     ),
                     MoreIconButton(
                       color: color,
                       iconSize: iconSize,
                       iconData: AliIcon.iconNext,
-                      onPressed: () {
-                        onNextSongs();
-                      },
+                      onPressed: widget.onNextSongs,
                     ),
                   ],
                 ),
+
+                // 底部按钮区
                 Row(
                   mainAxisAlignment:
                       MainAxisAlignment.spaceEvenly,
@@ -203,8 +251,10 @@ class MusicDetails extends StatelessWidget {
                     ),
                     MoreIconButton(
                       color: color,
-                      iconData: AliIcon.iconHSound,
-                      onPressed: () {},
+                      iconData: alignIcons[alignIndex],
+                      onPressed: () {
+                        changeAlignment();
+                      },
                     ),
                     MoreIconButton(
                       color: color,

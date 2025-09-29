@@ -18,8 +18,17 @@ class _MusicLocalDataState extends State<MusicLocalData> {
     _loadMusic();
   }
 
+  bool _firstOpen = true;
+
   Future<void> _loadMusic() async {
     try {
+      if (_firstOpen) {
+        await Future.delayed(
+          const Duration(milliseconds: 500),
+        );
+        _firstOpen = false;
+      }
+
       final music =
           await MusicLoader.loadLocalMusicWithPermission();
       setState(() {
@@ -43,8 +52,21 @@ class _MusicLocalDataState extends State<MusicLocalData> {
         height: double.infinity,
         child:
             _isLoading
-                ? const Center(
-                  child: CircularProgressIndicator(),
+                ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 12),
+                      Text(
+                        '正在扫描本地音乐...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
                 )
                 : CustomScrollView(
                   slivers: [

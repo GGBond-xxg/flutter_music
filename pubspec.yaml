@@ -20,7 +20,7 @@ dependencies:
   sliding_up_panel2: ^3.3.0+1
   permission_handler: ^11.3.1
   audio_metadata_reader: ^1.4.2
-  
+  scrollable_positioned_list: ^0.3.8
 
 
 dev_dependencies:

@@ -110,6 +110,39 @@ class MusicLoader {
     List<File> files,
   ) async {
     List<Map<String, dynamic>> result = [];
+    List<LyricLine> parseLyrics(String lyrics) {
+      final regex = RegExp(r'\[(\d+):(\d+)\.(\d+)\](.*)');
+      final lines = lyrics.split('\n');
+      List<LyricLine> result = [];
+
+      for (var line in lines) {
+        final match = regex.firstMatch(line);
+        if (match != null) {
+          final minutes = int.parse(match.group(1)!);
+          final seconds = int.parse(match.group(2)!);
+          final milliseconds = int.parse(match.group(3)!);
+          final text = match.group(4)!.trim();
+
+          // 过滤掉空行
+          if (text.isEmpty) continue;
+
+          result.add(
+            LyricLine(
+              time: Duration(
+                minutes: minutes,
+                seconds: seconds,
+                milliseconds: milliseconds * 10,
+              ),
+              text: text,
+            ),
+          );
+        }
+      }
+      // 排序一下（保险）
+      result.sort((a, b) => a.time.compareTo(b.time));
+      return result;
+    }
+
     for (var file in files) {
       try {
         // audio_metadata_reader 读取是同步的，传 File 对象
@@ -118,17 +151,18 @@ class MusicLoader {
         if (meta.pictures.isNotEmpty) {
           coverBytes = meta.pictures.first.bytes;
         }
-        print(meta.duration);
+
         result.add({
           'title': meta.title ?? file.uri.pathSegments.last,
           'artist': meta.artist ?? '',
           'album': meta.album ?? '',
-          // duration 单位是秒，可能是 null
           'duration': meta.duration ?? 0,
           'path': file.path,
-          // 你可以扩展支持封面、genre等
           'picture': coverBytes,
-          // Uint8List? 封面图字节流
+          'lyrics':
+              meta.lyrics != null && meta.lyrics!.isNotEmpty
+                  ? parseLyrics(meta.lyrics!)
+                  : [], // ✅ 确保是 List<LyricLine>
         });
       } catch (e) {
         result.add({

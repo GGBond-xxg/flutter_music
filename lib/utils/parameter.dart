@@ -10,7 +10,7 @@ class AliIcon {
   static IconData iconPaused = fontIcon(0xe662); // 播放暂停
   static IconData iconNext = fontIcon(0xe63b); // 下一首
   static IconData iconPrevious = fontIcon(0xe63a); // 上一首
-  static IconData iconlyrics = fontIcon(0xe607); // 歌词
+  static IconData iconlyrics = fontIcon(0xe855); // 歌词
   static IconData iconClose = fontIcon(0xe601); // 关闭
   static IconData iconStorage = fontIcon(0xea5f); // 存储
   static IconData iconCloud = fontIcon(0xe603); // 云存储
@@ -29,9 +29,10 @@ class AliIcon {
   static IconData iconSun = fontIcon(0xe602); // 太阳
   static IconData iconMoon = fontIcon(0xe62e); // 月亮
   static IconData iconSound = fontIcon(0xe654); // 声源切换
-  static IconData iconHSound = fontIcon(0xeca5); // 外放
-  static IconData iconNSound = fontIcon(0xe68c); // 无声音
   static IconData iconTimer = fontIcon(0xe721); // 定时器
+  static IconData iconLeft = fontIcon(0xe854); // 靠左
+  static IconData iconCenter = fontIcon(0xe852); // 剧中
+  static IconData iconRight = fontIcon(0xe853); // 靠右
 }
 
 // DefaultColors

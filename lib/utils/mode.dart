@@ -1,5 +1,31 @@
 part of '../quote.dart';
 
+class TextstyleLyrics extends StatelessWidget {
+  final String text;
+  final Color color;
+  final double fontSize;
+  final FontWeight fontWeight;
+  const TextstyleLyrics({
+    super.key,
+    required this.text,
+    required this.color,
+    this.fontSize = 14.0,
+    this.fontWeight = FontWeight.bold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: fontSize,
+        color: color,
+        fontWeight: fontWeight,
+      ),
+    );
+  }
+}
+
 class IconRowButton extends StatelessWidget {
   final Icon icon;
   final double size;
@@ -255,41 +281,53 @@ class MoreIconButton extends StatelessWidget {
   }
 }
 
-// class Song {
-//   final String title;
-//   final String subtitle;
-//   final IconData icon;
-//   final Uint8List? imageBytes; // ✅ 支持二进制封面图
-
-//   Song({
-//     required this.title,
-//     required this.subtitle,
-//     required this.icon,
-//     this.imageBytes,
-//   });
-
-//   factory Song.fromMap(Map<String, dynamic> map) {
-//     return Song(
-//       title: map['title'] ?? '未知标题',
-//       subtitle: map['artist'] ?? '未知艺术家',
-//       icon: Icons.music_note,
-//       imageBytes: map['imageBytes'], // 👈 确保你传入这个
-//     );
-//   }
-// }
-
 class Song {
   final String title;
   final String subtitle;
   final IconData icon;
   final Uint8List? imageBytes;
-  final int duration; // 单位秒
+  final int duration;
+  final String path;
+  final List<LyricLine> lyrics; // 直接存 List<LyricLine>
 
   Song({
     required this.title,
     required this.subtitle,
     required this.icon,
-    this.imageBytes,
-    this.duration = 0,
+    required this.imageBytes,
+    required this.duration,
+    required this.path,
+    required this.lyrics,
   });
+}
+
+class LyricLine {
+  final Duration time;
+  final String text;
+
+  const LyricLine({required this.time, required this.text});
+}
+
+// 把 "03:25" -> Duration(minutes: 3, seconds: 25)
+Duration _parseDuration(String timeStr) {
+  final parts = timeStr.split(':');
+  if (parts.length != 2) return Duration.zero;
+
+  final minutes = int.tryParse(parts[0]) ?? 0;
+  final seconds = int.tryParse(parts[1]) ?? 0;
+
+  return Duration(minutes: minutes, seconds: seconds);
+}
+
+// 把 Duration -> "03:25"
+String _formatDuration(Duration duration) {
+  final minutes = duration.inMinutes
+      .remainder(60)
+      .toString()
+      .padLeft(2, '0');
+  final seconds = duration.inSeconds
+      .remainder(60)
+      .toString()
+      .padLeft(2, '0');
+  return '$minutes:$seconds';
 }
